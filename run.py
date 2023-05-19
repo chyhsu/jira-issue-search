@@ -94,6 +94,11 @@ def query():
     return jsonify(ret)
 
 
+@app.route('/version', methods=['GET'])
+def version():
+    return jsonify({"release_version": "1.0.0.1000"})
+
+
 if __name__ == '__main__':
     database.init()
     app.run(host='0.0.0.0', port=8080)
