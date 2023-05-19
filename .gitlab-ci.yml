@@ -1,0 +1,24 @@
+variables:
+  REGISTRY_URL: qif-gitlab.dev-myqnapcloud.com:5000
+
+stages:
+  - push
+
+.ci-runner:
+  tags:
+    - DEV-K8S-RUNNER
+
+push:
+  extends:
+    - .ci-runner
+  image: qif-gitlab.dev-myqnapcloud.com:5000/share/util/docker
+  stage: push
+  services:
+    - docker:20.10.12-dind
+  script:
+    - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+    - sh -x /bin/docker.sh
+  variables:
+    SHARE_REPO: "share/repo"
+    DOCKER_HOST: tcp://localhost:2375
+    DOCKER_TLS_CERTDIR: ''
