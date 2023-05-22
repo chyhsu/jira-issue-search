@@ -87,7 +87,6 @@ def query():
         ret.append({
             'key': row['_id'],
             'summary': row['summary'],
-            'description': row['description'],
             'similarity': row['similarity']
         })
 
