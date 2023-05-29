@@ -18,6 +18,16 @@ def get_embedding(text):
     return result['data'][0]['embedding']
 
 
+def completion(text):
+    prompt = "Please give some suggestions on how to resolve or response to the issue described below: " + text
+    response = openai.Completion.create(
+        engine='text-davinci-003',
+        prompt=prompt,
+        max_tokens=2048,
+        temperature=0.5)
+    return response['choices'][0]['text']
+
+
 if __name__ == '__main__':
     df = pd.read_csv('jira.csv')
     df['document'] = df.apply(

@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 from jira_source import fetch_by_id
-from text_embedding import document, get_embedding
+from openai_service import document, get_embedding
 
 def vector_similarity(vec1, vec2):
     return np.dot(np.array(vec1), np.array(vec2))

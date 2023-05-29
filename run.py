@@ -4,7 +4,7 @@ import pandas as pd
 
 import database
 import jira_source
-import text_embedding
+import openai_service
 import similarity
 
 from flask import Flask, request, jsonify
@@ -29,14 +29,14 @@ def sync_data():
             if existed_issue["summary"] != issue["summary"] or existed_issue["description"] != issue["description"]:
                 need_update = True
                 existed_issue.update(issue)
-                existed_issue['document'] = text_embedding.document(existed_issue['summary'], existed_issue['description'])
-                existed_issue['embedding'] = text_embedding.get_embedding(existed_issue['document'])
+                existed_issue['document'] = openai_service.document(existed_issue['summary'], existed_issue['description'])
+                existed_issue['embedding'] = openai_service.get_embedding(existed_issue['document'])
         else:
             need_update = True
             existed_issue = {}
             existed_issue.update(issue)
-            existed_issue['document'] = text_embedding.document(issue['summary'], issue['description'])
-            existed_issue['embedding'] = text_embedding.get_embedding(existed_issue['document'])
+            existed_issue['document'] = openai_service.document(issue['summary'], issue['description'])
+            existed_issue['embedding'] = openai_service.get_embedding(existed_issue['document'])
         if need_update:
             database.insert_or_replace_one(
                 existed_issue["key"],
@@ -61,8 +61,8 @@ def query():
             issue = jira_source.fetch_by_id(key)
             existed_issue = {}
             existed_issue.update(issue)
-            existed_issue['document'] = text_embedding.document(issue['summary'], issue['description'])
-            existed_issue['embedding'] = text_embedding.get_embedding(existed_issue['document'])
+            existed_issue['document'] = openai_service.document(issue['summary'], issue['description'])
+            existed_issue['embedding'] = openai_service.get_embedding(existed_issue['document'])
             database.insert_or_replace_one(
                 existed_issue["key"],
                 existed_issue["status"],
@@ -72,7 +72,7 @@ def query():
                 existed_issue["embedding"])
         prompt_embedding = existed_issue['embedding']
     else:
-        prompt_embedding = text_embedding.get_embedding(q)
+        prompt_embedding = openai_service.get_embedding(q)
 
     # get all existing issues
     df = pd.DataFrame(database.get_all())
@@ -91,6 +91,21 @@ def query():
         })
 
     return jsonify(ret)
+
+
+@app.route('/suggest', methods=['GET'])
+def suggest():
+    key = request.args.get('key')
+    if key:
+        issue = jira_source.fetch_by_id(key)
+        existed_issue = {}
+        existed_issue.update(issue)
+        text = openai_service.document(issue['summary'], issue['description'])
+        message = openai_service.completion(text)
+    else:
+        message = "fail to find jira issue"
+
+    return jsonify({"message": message})
 
 
 @app.route('/version', methods=['GET'])
