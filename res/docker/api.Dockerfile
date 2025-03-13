@@ -1,20 +1,29 @@
-FROM python
+FROM python:3.12
 
+# Create a project directory inside /app
 WORKDIR /app
+# Copy requirements first to leverage Docker cache
+COPY res/requirements.txt ./res/
 
-# add code
-ADD *.py /app/
-ADD res/requirements.txt /app/
+# Install dependencies
+RUN pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu && \
+    pip install -r res/requirements.txt
 
-# install dependencies
-RUN pip install -r requirements.txt
+# Copy application code with proper structure
+COPY run.py ./
+COPY app ./app/
+COPY util ./util/
+COPY db ./db/
+COPY models ./models/
+COPY .env ./
+RUN mkdir -p ./asset/chroma_data
 
-# add user
+# Add user
 ARG USER=qnap
 RUN adduser --quiet $USER
 RUN chown -R $USER:$USER /app
 USER $USER
 
-# run
-CMD python run.py
+# Run
+CMD ["python", "run.py"]
 EXPOSE 8080

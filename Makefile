@@ -1,5 +1,5 @@
 run-api:
-	. .env && python server.py
+	. .env && python run.py
 
 build-api-docker:
 	docker build -t issue_search:latest -f res/docker/api.Dockerfile .

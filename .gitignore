@@ -1,2 +1,8 @@
 __pycache__
 venv
+.history/*
+chroma.log
+jira.csv
+chroma_data/
+.gitignore
+.DS_Store
