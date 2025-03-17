@@ -1,6 +1,10 @@
 import chromadb
 import os
-from util.txt_process import create_entry
+from util.txt_process import document, format_value
+from models.embedding import get_embedding_batch
+from util.logger import get_logger
+
+logger = get_logger(__name__)
 
 CLIENT = None
 COLLECTION = None
@@ -42,15 +46,16 @@ def get_all():
 
 def insert_or_replace_one(issue):
    
+    logger.info(f"Updating issue: {issue['key']}")
     key = issue.get('key', '')
     document, embedding, metadata = create_entry([issue])
 
     # Use upsert to handle both insert and update cases in a single operation
     COLLECTION.upsert(
-        ids=[key],
-        documents=[document],
-        embeddings=[embedding],
-        metadatas=[metadata]
+        ids=key,
+        documents=document,
+        embeddings=embedding,
+        metadatas=metadata
     )
 
 
@@ -70,13 +75,45 @@ def insert_or_replace_batch(issues):
         metadatas=metadatas
     )
     
-def query(query_text, n_results=5):
+def query(query_embedding, n_results=5):
    
     # Use ChromaDB's built-in query functionality
     results = COLLECTION.query(
-        query_texts=[query_text],
+        query_embeddings=[query_embedding],
         n_results=n_results
     )
     return results
 
+
+def create_entry(issues):
+  
+    # Create document text
+    doc_texts = [document(issue) for issue in issues]
     
+    # Generate embeddings in batch 
+    embeddings = get_embedding_batch(doc_texts)
+
+    # Create URLs with consistent format
+    issue_urls = [f"https://qnap-jira.qnap.com.tw/browse/{issue.get('key')}" for issue in issues]
+    
+    # Create metadata with consistent format
+    metadatas = []
+    for i, issue in enumerate(issues):
+        metadata = {
+            'key': issue.get('key'),
+            'status': issue.get('status'),
+            'created': issue.get('created'),
+            'summary': format_value(issue.get('summary')),
+            'description': format_value(issue.get('description')),
+            'issuetype': issue.get('issuetype'),
+            'assignee': issue.get('assignee'),
+            'url': issue_urls[i]
+        }
+        metadatas.append(metadata)
+    
+    return doc_texts, embeddings, metadatas
+
+
+
+
+ 

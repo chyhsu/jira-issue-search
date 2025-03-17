@@ -26,8 +26,26 @@ def query():
     n_results = int(request.args.get('n_results', 5))
     logger.info(f"Querying for key: {key}, query: {q}, n_results: {n_results}")
     ret = service.query_data(key, q, n_results)
+    if ret == []:
+        return jsonify({'code': 0, 'message': 'No Result'})
     return jsonify({'code': 0, 'message': 'Query successfully', 'results': ret})
 
+@jira_issue_bp.route('/suggest', methods=['GET'])
+def suggest():
+    key=request.args.get('key')
+    logger.info(f"Suggesting for key: {key}")
+    suggestion=service.suggest_data(key)
+    if suggestion==[]:
+        return jsonify({'code': 0, 'message': 'No Result'})
+    return jsonify({'code': 0, 'message': 'Suggest successfully', 'results': suggestion})
+
+
+
+@jira_issue_bp.route('/get', methods=['GET'])
+@jira_issue_bp.route('/get', methods=['GET'])
+def get():
+    n_results = int(request.args.get('n_results', 5))
+    return jsonify({'code': 0, 'message': 'Get successfully', 'results': service.get_data(n_results)})
 
 @jira_issue_bp.route('/version', methods=['GET'])
 def version():

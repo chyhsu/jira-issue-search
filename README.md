@@ -8,8 +8,9 @@ This service provides a REST API for:
 - Syncing Jira issues to a local ChromaDB database
 - Querying similar issues based on semantic search
 - Retrieving issue details
+- Getting AI-powered suggestions for issue solutions
 
-The application uses sentence transformers to generate embeddings for Jira issue content, enabling powerful semantic search capabilities beyond simple keyword matching.
+The application uses embeddings to generate vector representations of Jira issue content, enabling powerful semantic search capabilities beyond simple keyword matching. It also integrates with Ollama to provide AI-powered suggestions for issue resolution.
 
 ## Project Structure
 
@@ -27,13 +28,15 @@ search-issue-service/
 │   └── chroma.py           # ChromaDB interface
 ├── models/                 # ML models and embedding functions
 │   ├── __init__.py
-│   └── embedding.py        # Embedding model functions
+│   ├── embedding.py        # Embedding model functions
+│   └── suggest.py          # AI suggestion generation using Ollama
 ├── util/                   # Utility modules
 │   ├── __init__.py
 │   ├── logger.py           # Centralized logging
 │   └── txt_process.py      # Text processing utilities
 ├── .env                    # Environment variables
 ├── requirements.txt        # Project dependencies
+├── Makefile                # Commands for running and managing the service
 └── run.py                  # Application entry point
 ```
 
@@ -44,6 +47,7 @@ search-issue-service/
 - Python 3.9+
 - Access to a Jira instance
 - Sufficient disk space for storing embeddings
+- Ollama server running locally or accessible via port-forwarding
 
 ### Installation
 
@@ -66,21 +70,27 @@ search-issue-service/
 
 4. Create a `.env` file with the following variables:
    ```
-   export JIRA_USER="your-jira-username"
-   export JIRA_PASSWORD="your-jira-password"
-   export JIRA_QUERY='PROJECT = "YOUR-PROJECT"'
-   export JIRA_URL="your-jira-url"
-   export JIRA_API_TOKEN="your-jira-api-token"
-   export CSV_PATH="asset/jira.csv"
-   export CHROMA_DIR="asset/chroma_data"
-   export COLLECTION_NAME="jira_issues"
-   export MODEL="sentence-transformers/all-MiniLM-L12-v2"
-   export FETCH_SIZE=5000
+   JIRA_QUERY='PROJECT = "YOUR-PROJECT" OR ASSIGNEE= "user1@example.com" OR ASSIGNEE= "user2@example.com"'
+   JIRA_URL="your-jira-url"
+   JIRA_API_TOKEN="your-basic-auth-token"
+   CSV_PATH="asset/jira.csv"
+   CHROMA_DIR="asset/chroma_data"
+   COLLECTION_NAME="jira_issues"
+   EMBEDDING_MODEL_PATH="http://localhost:11434/api/embeddings"
+   EMBEDDING_MODEL="mxbai-embed-large"
+   SUGGEST_MODEL_PATH="http://localhost:11434/api/chat"
+   SUGGEST_MODEL="gemma3"
+   FETCH_SIZE=2000
    ```
 
 5. Create the asset directory:
    ```
    mkdir -p asset/chroma_data
+   ```
+
+6. Start required external services:
+   ```
+   make external-srv
    ```
 
 ## Running the Application
@@ -92,6 +102,12 @@ python run.py
 ```
 
 The service will be available at `http://0.0.0.0:8080`.
+
+Alternatively, you can run the service in Docker:
+
+```
+make run-api-docker
+```
 
 ## API Endpoints
 
@@ -133,14 +149,71 @@ Searches for issues similar to the specified issue key or query text.
 
 **Response:**
 ```json
-[
-  {
-    "key": "PROJ-124",
-    "summary": "Login page not working in Safari",
-    "distance": 0.123
-  },
-  ...
-]
+{
+  "code": 0,
+  "message": "Query successfully",
+  "results": [
+    {
+      "key": "PROJ-124",
+      "summary": "Login page not working in Safari",
+      "url": "https://jira.example.com/browse/PROJ-124",
+      "distance": 0.123,
+      "text": "Full text of the issue"
+    },
+    ...
+  ]
+}
+```
+
+### Get AI Suggestions for an Issue
+
+```
+GET /suggest?key=PROJ-123
+```
+
+Retrieves AI-generated suggestions for resolving a specific issue.
+
+**Parameters:**
+- `key`: Jira issue key to get suggestions for
+
+**Response:**
+```json
+{
+  "code": 0,
+  "message": "Suggest successfully",
+  "results": {
+    "summary": "Issue summary",
+    "description": "Issue description",
+    "suggestion": "AI-generated suggestion for resolving the issue"
+  }
+}
+```
+
+### Get All Issues
+
+```
+GET /get?n_results=10
+```
+
+Retrieves a list of all issues in the database.
+
+**Parameters:**
+- `n_results` (optional, default=5): Number of results to return
+
+**Response:**
+```json
+{
+  "code": 0,
+  "message": "Get successfully",
+  "results": [
+    {
+      "key": "PROJ-123",
+      "summary": "Issue summary",
+      ...
+    },
+    ...
+  ]
+}
 ```
 
 ### Version Information
@@ -179,9 +252,27 @@ logger.info("Starting process")
 logger.debug("Detailed information")
 ```
 
+### External Services
+
+The application relies on the following external services:
+
+1. **Jira API** - For fetching issue data
+2. **Ollama** - For generating embeddings and AI suggestions
+3. **NATS Server** - For message queue functionality
+
+You can start these services using:
+```
+make external-srv
+```
+
+And stop them using:
+```
+make clean-external-srv
+```
+
 ## Deployment
 
-The service can be deployed using Docker and Kubernetes. See the deployment documentation for details.
+The service can be deployed using Docker and Kubernetes. A sample Kubernetes deployment for Ollama is provided in the repository.
 
 ## License
 

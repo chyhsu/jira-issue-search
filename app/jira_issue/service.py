@@ -1,8 +1,9 @@
 import os
-from db.chroma import insert_or_replace_batch, insert_or_replace_one, get_one_by_key,query
+from db.chroma import insert_or_replace_batch,get_all,insert_or_replace_one, get_one_by_key,query
 from util.txt_process import  format_value, document
 from app.jira_issue.jira_source import result_to_df, fetch_by_query, fetch_by_id
 from models.embedding import get_embedding
+from models.suggest import get_suggestion
 from util.logger import get_logger
 
 logger = get_logger(__name__)
@@ -84,35 +85,34 @@ def query_data(key,q,n_results):
     Returns:
         list: A list of dictionaries containing the query results.
     """
+    ret = []
     if key:
         # Check if issue already exists
         existed_issue = get_one_by_key(key)
         if not existed_issue:
+            logger.info("Issue doesn't exist")
             # If not, fetch it and add to database
-            issue = fetch_by_id(key)
-            existed_issue = {}
-            existed_issue.update(issue)
-            existed_issue['document'] = document(issue['summary'], issue['description'])
-            existed_issue['embedding'] = get_embedding(existed_issue['document'])
-            insert_or_replace_one(existed_issue)
-        
-        # Use the document text from the issue as the query
-        query_text = existed_issue['document']
+            try:
+                issue = fetch_by_id(key)
+            except Exception as e:
+                return []
+            insert_or_replace_one(issue)
+            query_text = document(issue)
+            query_embedding = get_embedding(query_text)
+        else:
+            query_text = existed_issue['document']
+            query_embedding = existed_issue['embedding']
     else:
         # Use the provided query text
-        query_text = q
-        
+        query_text = format_value(q)
+        query_embedding = get_embedding(query_text)
+
     # Use ChromaDB's built-in query functionality
-    results = query(query_text, n_results + 1)
+    results = query(query_embedding, n_results)
     
     # Process results
-    ret = []
     for i in range(len(results['ids'][0])):
         result_key = results['ids'][0][i]
-        # Skip the query key if it's in the results
-        if key and result_key == key:
-            continue
-            
         # Get metadata for this result
         metadata = results['metadatas'][0][i] if 'metadatas' in results and results['metadatas'] else {}
         
@@ -121,11 +121,37 @@ def query_data(key,q,n_results):
             'key': result_key,
             'summary': metadata.get('summary', 'No summary available'),
             'url': metadata.get('url', 'No URL available'),
-            'distance': float(results['distances'][0][i]) if 'distances' in results else 0.0
+            'distance': float(results['distances'][0][i]) if 'distances' in results else 0.0,
+            'text': results['documents'][0][i]
         })
-        
+      
         # If we have enough results after filtering, break
         if len(ret) >= n_results:
             break
     
     return ret  
+
+def suggest_data(key):
+    ret={}
+    existed_issue = get_one_by_key(key)
+    if not existed_issue:
+        return []
+    ret['summary']=existed_issue['metadata']['summary']
+    ret['description']=existed_issue['metadata']['description']
+    ret['suggestion']=get_suggestion(existed_issue['document'])
+    return ret
+
+
+def get_data(n_results):
+    ret=[]
+    results = get_all()
+    for doc in results['metadatas']:
+        text=f"This is summary: '{doc['summary']}'; This is description: '{doc['description']}'"
+        ret.append({
+            'text': text,
+            'key': doc['key'],
+            'suggestion':""
+        })
+  
+
+    return ret[:n_results]

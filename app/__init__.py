@@ -29,7 +29,11 @@ def init_services():
     # Initialize ChromaDB using our db module
     import db.chroma
     db.chroma.init()
-    
+
+    import models.suggest
+    models.suggest.init()
+
+
     # Initialize embedding model
     import models.embedding
     models.embedding.init()
