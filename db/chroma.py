@@ -1,7 +1,7 @@
 import chromadb
 import os
 from util.txt_process import document, format_value
-from models.embedding import get_embedding_batch
+from models.embedding import get_embedding_batch,get_embedding_bedrock_batch
 from util.logger import get_logger
 
 logger = get_logger(__name__)
@@ -91,7 +91,7 @@ def create_entry(issues):
     doc_texts = [document(issue) for issue in issues]
     
     # Generate embeddings in batch 
-    embeddings = get_embedding_batch(doc_texts)
+    embeddings = get_embedding_bedrock_batch(doc_texts)
 
     # Create URLs with consistent format
     issue_urls = [f"https://qnap-jira.qnap.com.tw/browse/{issue.get('key')}" for issue in issues]
@@ -112,8 +112,3 @@ def create_entry(issues):
         metadatas.append(metadata)
     
     return doc_texts, embeddings, metadatas
-
-
-
-
- 

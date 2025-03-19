@@ -39,9 +39,6 @@ def suggest():
         return jsonify({'code': 0, 'message': 'No Result'})
     return jsonify({'code': 0, 'message': 'Suggest successfully', 'results': suggestion})
 
-
-
-@jira_issue_bp.route('/get', methods=['GET'])
 @jira_issue_bp.route('/get', methods=['GET'])
 def get():
     n_results = int(request.args.get('n_results', 5))
