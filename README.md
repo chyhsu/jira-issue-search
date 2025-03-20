@@ -70,18 +70,32 @@ search-issue-service/
 
 4. Create a `.env` file with the following variables:
    ```
+   # Jira Configuration
    JIRA_QUERY='PROJECT = "YOUR-PROJECT" OR ASSIGNEE= "user1@example.com" OR ASSIGNEE= "user2@example.com"'
    JIRA_URL="your-jira-url"
    JIRA_API_TOKEN="your-basic-auth-token"
+   FETCH_SIZE=2000
+
+   # ChromaDB Configuration
    CSV_PATH="asset/jira.csv"
    CHROMA_DIR="asset/chroma_data"
    COLLECTION_NAME="jira_issues"
+
+   # Ollama Configuration (for local embedding and suggestion generation)
    EMBEDDING_MODEL_PATH="http://localhost:11434/api/embeddings"
    EMBEDDING_MODEL="mxbai-embed-large"
    SUGGEST_MODEL_PATH="http://localhost:11434/api/chat"
    SUGGEST_MODEL="gemma3"
-   FETCH_SIZE=2000
+
+   # AWS Bedrock Configuration (alternative to local Ollama)
+   BEDROCK_REGION="your-aws-region"
+   BEDROCK_ACCESS_KEY_ID="your-aws-access-key-id"
+   BEDROCK_SECRET_ACCESS_KEY="your-aws-secret-access-key"
+   BEDROCK_EMBEDDING_MODEL_ID="amazon.titan-embed-text-v2:0"
+   BEDROCK_SUGGEST_MODEL_ID="us.deepseek.r1-v1:0"
    ```
+
+   > **Note:** You can choose to use either local Ollama or AWS Bedrock for generating embeddings and suggestions. If you configure both, the application will prioritize AWS Bedrock by default.
 
 5. Create the asset directory:
    ```
@@ -230,6 +244,32 @@ Returns the current version of the service.
   "release_version": "1.0.0.1000"
 }
 ```
+
+## Configuration Options
+
+### Embedding Generation Options
+
+The service supports two methods for generating embeddings:
+
+1. **Local Ollama** - Uses a locally running Ollama server with models like `mxbai-embed-large`
+2. **AWS Bedrock** - Uses Amazon's Bedrock service with models like `amazon.titan-embed-text-v2:0`
+
+To configure which method to use:
+- For local Ollama: Set the `EMBEDDING_MODEL_PATH` and `EMBEDDING_MODEL` variables in `.env`
+- For AWS Bedrock: Set the `BEDROCK_*` variables in `.env`
+
+The application will automatically use AWS Bedrock if properly configured, otherwise it will fall back to the local Ollama model.
+
+### Suggestion Generation Options
+
+Similarly, AI suggestions can be generated using:
+
+1. **Local Ollama** - Uses models like `gemma3` running on your local Ollama server
+2. **AWS Bedrock** - Uses models like `us.deepseek.r1-v1:0` or other available Bedrock models
+
+To configure which method to use:
+- For local Ollama: Set the `SUGGEST_MODEL_PATH` and `SUGGEST_MODEL` variables in `.env`
+- For AWS Bedrock: Set the `BEDROCK_SUGGEST_MODEL_ID` and other `BEDROCK_*` variables in `.env`
 
 ## Development
 

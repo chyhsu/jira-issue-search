@@ -2,8 +2,8 @@ import os
 from db.chroma import insert_or_replace_batch,get_all,insert_or_replace_one, get_one_by_key,query
 from util.txt_process import  format_value, document
 from app.jira_issue.jira_source import result_to_df, fetch_by_query, fetch_by_id
-from models.embedding import get_embedding,get_embedding_bedrock
-from models.suggest import get_suggestion, get_suggestion_bedrock, get_suggestion_bedrock_nova
+from models.embedding import get_embedding_bedrock
+from models.suggest import  get_suggestion_bedrock
 from util.logger import get_logger
 
 logger = get_logger(__name__)
@@ -95,12 +95,12 @@ def query_data(key,q,n_results):
             try:
                 issue = fetch_by_id(key)
             except Exception as e:
+                logger.error(f"Failed to fetch issue {key}: {e}")
                 return []
             insert_or_replace_one(issue)
             query_text = document(issue)
             query_embedding = get_embedding_bedrock(query_text)
         else:
-            query_text = existed_issue['document']
             query_embedding = existed_issue['embedding']
     else:
         # Use the provided query text
@@ -122,7 +122,6 @@ def query_data(key,q,n_results):
             'summary': metadata.get('summary', 'No summary available'),
             'url': metadata.get('url', 'No URL available'),
             'distance': float(results['distances'][0][i]) if 'distances' in results else 0.0,
-            'text': results['documents'][0][i],
             'created': metadata.get('created', 'No created date available')
         })
       
@@ -152,6 +151,4 @@ def get_data(n_results):
             'key': doc['key'],
             'suggestion':""
         })
-  
-
     return ret[:n_results]

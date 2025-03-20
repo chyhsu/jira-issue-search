@@ -20,9 +20,10 @@ def clean_text(text):
 def document(row):
 
     # Clean and prepare the text
+    key = format_value(row.get('key', ''))
     summary = format_value(row.get('summary', ''))
     description = format_value(row.get('description', ''))
-    text = f"This is summary: '{summary}'; This is description: '{description}'"
+    text = f"This is Issue ID: '{key}'; This is summary: '{summary}'; This is description: '{description}'"
     return text
 
 

@@ -10,7 +10,7 @@ BEDROCK_ACCESS_KEY_ID = None
 BEDROCK_SECRET_ACCESS_KEY = None
 BEDROCK_SUGGEST_MODEL_ID = None
 
-SYSTEM_PROMPT = "You are an expert understanding both chinese and english. You should suggest user a concise and precise solution for his issue, according to the text. If you can't identify the issue or give a practical suggestion according to the text, you should just say 'No suggestion', or in traditional chinese '沒有建議'.Do NOT output your thinking process. Your response should not exceed 400 tokens. If the text contains Chinese, please answer in Traditional Chinese. Ensure no Simplified Chinese is used, and convert all Simplified Chinese to Traditional Chinese before automatic generation."
+SYSTEM_PROMPT = "You are an expert proficient in both Traditional Chinese and English. Provide the user with a concise and precise solution based on the text, disregarding any 'Issue ID' mentioned. If the text does not allow identification of an issue or a practical suggestion cannot be offered, respond solely with 'No suggestion' in English or '沒有建議' in Traditional Chinese. Do not include your reasoning or thought process. Limit responses to 600 tokens. If the text includes Chinese, reply in Traditional Chinese, converting any Simplified Chinese to Traditional Chinese before generating the response. Do not append any formatting tags, such as '</end-of-sentence>', to the output."
 
 def init():
     global _MODEL
@@ -65,7 +65,7 @@ def get_suggestion_bedrock(text):
 
     body = json.dumps({
         "prompt": formatted_prompt,
-        "max_tokens": 400,
+        "max_tokens": 600,
         "temperature": 0.4,
         "top_p": 0.9,
     })
@@ -77,28 +77,3 @@ def get_suggestion_bedrock(text):
     # Extract choices.
     choices = model_response["choices"]
     return choices[0]['text']
-
-
-def get_suggestion_bedrock_nova(text):
-    model_id = "us.amazon.nova-lite-v1:0"
-   
-    bedrock_runtime = boto3.client(
-        service_name="bedrock-runtime",
-        region_name=BEDROCK_REGION,
-        aws_access_key_id=BEDROCK_ACCESS_KEY_ID,
-        aws_secret_access_key=BEDROCK_SECRET_ACCESS_KEY,
-    )
-
-    request_body = {
-        "messages": [{"role":"assistant","content":[{"text":SYSTEM_PROMPT}],"role": "user", "content": [{"text": text}]}]
-    }
-    
-    response = bedrock_runtime.invoke_model(
-        modelId=model_id,
-        body=json.dumps(request_body),
-        contentType="application/json",
-    )
-    response_body = json.loads(response.get("body").read())
-    return response_body['output']['message']['content'][0]['text']
-
-
