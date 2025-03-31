@@ -2,6 +2,7 @@ import requests
 import os
 import json
 import boto3
+from util.txt_process import clean_text
 _MODEL = None
 _MODEL_PATH = None
 
@@ -10,7 +11,7 @@ BEDROCK_ACCESS_KEY_ID = None
 BEDROCK_SECRET_ACCESS_KEY = None
 BEDROCK_SUGGEST_MODEL_ID = None
 
-SYSTEM_PROMPT = "You are an expert proficient in both Traditional Chinese and English. Provide the user with a concise and precise solution based on the text, disregarding any 'Issue ID' mentioned. If the text does not allow identification of an issue or a practical suggestion cannot be offered, respond solely with 'No suggestion' in English or '沒有建議' in Traditional Chinese. Do not include your reasoning or thought process. Limit responses to 600 tokens. If the text includes Chinese, reply in Traditional Chinese, converting any Simplified Chinese to Traditional Chinese before generating the response. Do not append any formatting tags, such as '</end-of-sentence>', to the output."
+SYSTEM_PROMPT = "You are an expert of solving jira issues and proficient in both Traditional Chinese and English. Provide the user with a solution or suggestion based on the text, disregarding any 'Issue ID' mentioned. Do not include your reasoning or thought process. Do not repeat the issue description. Limit responses to 600 tokens. If the text includes Chinese, reply in Traditional Chinese, converting any Simplified Chinese to Traditional Chinese before generating the response. Do not append any formatting tags, such as '</end-of-sentence>', to the output. If 'This is description' == '' or None, just reply 'No suggestion' in English or '沒有建議' in Traditional Chinese."
 
 def init():
     global _MODEL
@@ -66,7 +67,7 @@ def get_suggestion_bedrock(text):
     body = json.dumps({
         "prompt": formatted_prompt,
         "max_tokens": 600,
-        "temperature": 0.4,
+        "temperature": 0.7,
         "top_p": 0.9,
     })
     response = client.invoke_model(modelId=BEDROCK_SUGGEST_MODEL_ID, body=body)
@@ -76,4 +77,4 @@ def get_suggestion_bedrock(text):
     
     # Extract choices.
     choices = model_response["choices"]
-    return choices[0]['text']
+    return clean_text(choices[0]['text'])
