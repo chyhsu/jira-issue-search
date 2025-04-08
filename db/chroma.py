@@ -23,11 +23,11 @@ def init():
     }
     CLIENT = chromadb.PersistentClient(path=CHROMA_DIR)
     # Create collection with proper configuration
-    COLLECTION = CLIENT.get_or_create_collection(
+    COLLECTION = CLIENT.create_collection(
         name=COLLECTION_NAME,
         metadata=collection_metadata
     )
-
+    
     # Initialize Chroma CLIENT and get COLLECTION
    
 
