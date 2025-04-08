@@ -3,6 +3,7 @@ import os
 from util.txt_process import document, format_value
 from models.embedding import get_embedding_batch,get_embedding_bedrock_batch
 from util.logger import get_logger
+import multiprocessing
 
 logger = get_logger(__name__)
 
@@ -15,10 +16,21 @@ def init():
     # Load constants from environment variables
     CHROMA_DIR = os.getenv('CHROMA_DIR')
     COLLECTION_NAME = os.getenv('COLLECTION_NAME')
-    logger.info(f"Available CPU count: {os.cpu_count()}")
-    # Initialize Chroma CLIENT and get COLLECTION
+    logger.info(f"Available CPU count: {multiprocessing.cpu_count()}")
+    # Fix: Add proper HNSW configuration
+    collection_metadata = {
+        "hnsw:num_threads": 1   # Must be a positive integer
+    }
     CLIENT = chromadb.PersistentClient(path=CHROMA_DIR)
-    COLLECTION = CLIENT.get_or_create_collection(name=COLLECTION_NAME)
+    # Create collection with proper configuration
+    COLLECTION = CLIENT.get_or_create_collection(
+        name=COLLECTION_NAME,
+        metadata=collection_metadata
+    )
+
+    # Initialize Chroma CLIENT and get COLLECTION
+   
+
 
 def get_one_by_key(key):
     # Query the COLLECTION for the exact key
