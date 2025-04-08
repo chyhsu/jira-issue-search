@@ -6,8 +6,7 @@ WORKDIR /app
 COPY res/requirements.txt ./res/
 
 # Install dependencies
-RUN pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu && \
-    pip install -r res/requirements.txt
+RUN pip install -r res/requirements.txt
 
 # Copy application code with proper structure
 COPY run.py ./
@@ -15,6 +14,7 @@ COPY app ./app/
 COPY util ./util/
 COPY db ./db/
 COPY models ./models/
+COPY asset ./asset/
 COPY .env ./
 RUN mkdir -p ./asset/chroma_data
 

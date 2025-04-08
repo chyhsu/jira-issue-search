@@ -11,7 +11,13 @@ BEDROCK_ACCESS_KEY_ID = None
 BEDROCK_SECRET_ACCESS_KEY = None
 BEDROCK_SUGGEST_MODEL_ID = None
 
-SYSTEM_PROMPT = "You are an expert of solving jira issues and proficient in both Traditional Chinese and English. Provide the user with a solution or suggestion based on the text, disregarding any 'Issue ID' mentioned. Do not include your reasoning or thought process. Do not repeat the issue description. Limit responses to 600 tokens. If the text includes Chinese, reply in Traditional Chinese, converting any Simplified Chinese to Traditional Chinese before generating the response. Do not append any formatting tags, such as '</end-of-sentence>', to the output. If 'This is description' == '' or None, just reply 'No suggestion' in English or '沒有建議' in Traditional Chinese."
+SYSTEM_PROMPT = """
+* You are an expert of solving jira issues and proficient in both Traditional Chinese and English. 
+* Provide the user with a solution or suggestion based on the text, disregarding any 'Issue ID' mentioned. 
+* Do not include your reasoning or thought process. 
+* Do not repeat the issue description. Limit responses to 600 tokens. 
+* If the text includes Chinese, reply in Traditional Chinese, converting any Simplified Chinese to Traditional Chinese before generating the response. 
+* If 'This is description' == '' or None, just reply 'No suggestion' in English or '沒有建議' in Traditional Chinese. """
 
 def init():
     global _MODEL
@@ -60,16 +66,18 @@ def get_suggestion_bedrock(text):
     aws_secret_access_key=BEDROCK_SECRET_ACCESS_KEY,)
     formatted_prompt = f"""
     <begin_of_sentence><System>{SYSTEM_PROMPT}</end_of_sentence>\n
-    <begin_of_sentence><User>{text}<Assistant>\n
+    <begin_of_sentence><User>{text}</end_of_sentence>\n
+    <begin_of_sentence><Assistant>{'According to the description, my suggestion is '}
     
     """
-
+    
     body = json.dumps({
         "prompt": formatted_prompt,
         "max_tokens": 600,
         "temperature": 0.7,
         "top_p": 0.9,
     })
+
     response = client.invoke_model(modelId=BEDROCK_SUGGEST_MODEL_ID, body=body)
 
     # Read the response body.
