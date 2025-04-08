@@ -21,6 +21,9 @@ def init():
     collection_metadata = {
         "hnsw:num_threads": 1   # Must be a positive integer
     }
+    logger.info(f"Chroma directory: {CHROMA_DIR}")
+    if not os.path.exists(CHROMA_DIR):
+        os.makedirs(CHROMA_DIR)
     CLIENT = chromadb.PersistentClient(path=CHROMA_DIR)
     # Create collection with proper configuration
     COLLECTION = CLIENT.create_collection(
