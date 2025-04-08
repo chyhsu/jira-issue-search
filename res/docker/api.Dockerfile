@@ -16,7 +16,7 @@ COPY db ./db/
 COPY models ./models/
 COPY asset ./asset/
 COPY .env ./
-RUN mkdir -p ./asset/chroma_data
+
 
 # Add user
 ARG USER=qnap

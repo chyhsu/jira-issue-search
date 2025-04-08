@@ -18,7 +18,7 @@ push:
   script:
     - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
     - sh -x /bin/docker.sh
-    - sleep 3600
+
   variables:
     SHARE_REPO: "share/repo"
     DOCKER_HOST: tcp://localhost:2375
