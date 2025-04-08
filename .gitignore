@@ -2,6 +2,5 @@ __pycache__
 venv
 .history/*
 chroma.log
-jira.csv
 .gitignore
 .DS_Store
