@@ -17,14 +17,16 @@ def init():
     CHROMA_DIR = os.getenv('CHROMA_DIR')
     COLLECTION_NAME = os.getenv('COLLECTION_NAME')
     logger.info(f"Available CPU count: {multiprocessing.cpu_count()}")
+    logger.info(f"Chroma directory: {CHROMA_DIR}")
     # Fix: Add proper HNSW configuration
     collection_metadata = {
         "hnsw:num_threads": 1   # Must be a positive integer
     }
-    logger.info(f"Chroma directory: {CHROMA_DIR}")
+
     if not os.path.exists(CHROMA_DIR):
+        logger.info(f"Creating Chroma directory: {CHROMA_DIR}")
         os.makedirs(CHROMA_DIR)
-    CLIENT = chromadb.PersistentClient(path=CHROMA_DIR)
+    CLIENT = chromadb.PersistentClient(path="../asset/chroma_data")
     # Create collection with proper configuration
     COLLECTION = CLIENT.create_collection(
         name=COLLECTION_NAME,
