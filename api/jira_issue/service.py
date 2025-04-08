@@ -1,7 +1,7 @@
 import os
 from db.chroma import insert_or_replace_batch,get_all,insert_or_replace_one, get_one_by_key,query
 from util.txt_process import  format_value, document
-from app.jira_issue.jira_source import result_to_df, fetch_by_query, fetch_by_id
+from api.jira_issue.jira_source import result_to_df, fetch_by_query, fetch_by_id
 from models.embedding import get_embedding_bedrock
 from models.suggest import  get_suggestion_bedrock
 from util.logger import get_logger

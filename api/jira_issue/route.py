@@ -1,5 +1,5 @@
 from flask import request, jsonify, Blueprint
-from app.jira_issue import service
+from api.jira_issue import service
 from util.logger import get_logger
 
 

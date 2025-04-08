@@ -10,7 +10,7 @@ RUN pip install -r res/requirements.txt
 
 # Copy application code with proper structure
 COPY run.py ./
-COPY app ./app/
+COPY api ./api/
 COPY util ./util/
 COPY db ./db/
 COPY models ./models/

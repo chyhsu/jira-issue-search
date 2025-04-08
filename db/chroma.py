@@ -26,7 +26,7 @@ def init():
     if not os.path.exists(CHROMA_DIR):
         logger.info(f"Creating Chroma directory: {CHROMA_DIR}")
         os.makedirs(CHROMA_DIR)
-    CLIENT = chromadb.PersistentClient(path="../asset/chroma_data")
+    CLIENT = chromadb.PersistentClient(path=CHROMA_DIR)
     # Create collection with proper configuration
     COLLECTION = CLIENT.create_collection(
         name=COLLECTION_NAME,

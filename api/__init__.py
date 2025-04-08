@@ -15,7 +15,7 @@ def create_app():
     init_services()
     
     # Register blueprints
-    from app.jira_issue.route import jira_issue_bp
+    from api.jira_issue.route import jira_issue_bp
     app.register_blueprint(jira_issue_bp)
    
     logger.info("Application initialized successfully")
