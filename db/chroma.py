@@ -12,12 +12,10 @@ COLLECTION = None
 def init():
     global CLIENT
     global COLLECTION
-
     # Load constants from environment variables
-
     CHROMA_DIR = os.getenv('CHROMA_DIR')
     COLLECTION_NAME = os.getenv('COLLECTION_NAME')
-
+    logger.info(f"Available CPU count: {os.cpu_count()}")
     # Initialize Chroma CLIENT and get COLLECTION
     CLIENT = chromadb.PersistentClient(path=CHROMA_DIR)
     COLLECTION = CLIENT.get_or_create_collection(name=COLLECTION_NAME)
