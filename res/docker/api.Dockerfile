@@ -20,8 +20,8 @@ RUN mkdir -p /app/asset/chroma_data
 
 # Add user
 ARG USER=qnap
-RUN adduser --quiet $USER
-RUN chown -R $USER:$USER /app/asset/chroma_data
+ARG USER_ID=100
+RUN adduser --uid ${USER_ID} --quiet $USER
 RUN chown -R $USER:$USER /app
 USER $USER
 
