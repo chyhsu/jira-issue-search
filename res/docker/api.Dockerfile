@@ -1,7 +1,7 @@
 FROM python:3.12
 
 # Create a project directory inside /app
-WORKDIR /app
+WORKDIR /home/qnap
 # Copy requirements first to leverage Docker cache
 COPY res/requirements.txt ./res/
 
@@ -16,14 +16,14 @@ COPY db ./db/
 COPY models ./models/
 COPY .env ./
 
-RUN mkdir -p /app/asset/chroma_data 
+RUN mkdir -p /home/qnap/asset/chroma_data 
 
 # Add user
 ARG USER=qnap
 ARG GROUP=qnap
 RUN addgroup --quiet $GROUP
 RUN adduser --quiet --ingroup $GROUP $USER
-RUN chown -R $USER:$GROUP /app
+RUN chown -R $USER:$GROUP /home/qnap
 USER $USER
 
 
