@@ -14,7 +14,7 @@ push:
   image: qif-gitlab.dev-myqnapcloud.com:5000/share/util/docker
   stage: push
   services:
-    - docker:20.10.12-dind
+    - public.ecr.aws/docker/library/docker:24-dind
   script:
     - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
     - sh -x /bin/docker.sh
