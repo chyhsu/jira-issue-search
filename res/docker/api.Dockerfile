@@ -19,10 +19,12 @@ COPY .env ./
 RUN mkdir -p /app/asset/chroma_data 
 
 # Add user
-# ARG USER=qnap
-# RUN adduser --uid ${USER_ID} --quiet $USER
-RUN chown -R 100:100 /app
-USER 100
+ARG USER=qnap
+ARG GROUP=qnap
+RUN addgroup --quiet $GROUP
+RUN adduser --quiet --ingroup $GROUP $USER
+RUN chown -R $USER:$GROUP /app
+USER $USER
 
 
 # Run
