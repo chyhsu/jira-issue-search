@@ -4,7 +4,7 @@ from util.txt_process import document, format_value
 from models.embedding import get_embedding_batch,get_embedding_bedrock_batch
 from util.logger import get_logger
 import multiprocessing
-
+import time
 logger = get_logger(__name__)
 
 CLIENT = None
@@ -26,6 +26,7 @@ def init():
     if not os.path.exists(CHROMA_DIR):
         logger.info(f"Creating Chroma directory: {CHROMA_DIR}")
         os.makedirs(CHROMA_DIR)
+    time.sleep(120) 
     CLIENT = chromadb.PersistentClient(path="../asset/chroma_data")
     # Create collection with proper configuration
     COLLECTION = CLIENT.create_collection(
