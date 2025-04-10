@@ -4,3 +4,4 @@ venv
 chroma.log
 .gitignore
 .DS_Store
+.env

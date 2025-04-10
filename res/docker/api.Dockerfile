@@ -14,7 +14,7 @@ COPY api ./api/
 COPY util ./util/
 COPY db ./db/
 COPY models ./models/
-COPY .env ./
+
 
 RUN mkdir -p /home/qnap/asset/chroma_data 
 
