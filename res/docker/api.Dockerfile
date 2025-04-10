@@ -15,15 +15,15 @@ COPY util ./util/
 COPY db ./db/
 COPY models ./models/
 
-
-RUN mkdir -p /home/qnap/asset/chroma_data 
+RUN mkdir -p /home/qnap/asset
+RUN mkdir -p /chroma_data 
 
 # Add user
 ARG USER=qnap
 RUN adduser --quiet --uid 100 --gid 101 $USER
 RUN chown -R $USER:$GROUP /home/qnap
+RUN chown -R $USER:$GROUP /chroma_data
 USER $USER
-
 
 # Run
 CMD ["python", "run.py"]
