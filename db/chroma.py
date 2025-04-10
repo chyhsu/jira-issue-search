@@ -30,7 +30,7 @@ def init():
     try:
         COLLECTION = CLIENT.get_collection(name=COLLECTION_NAME)
         logger.info(f"Collection {COLLECTION_NAME} already exists")
-    except ValueError:
+    except chromadb.errors.NotFoundError:
         logger.info(f"Collection {COLLECTION_NAME} does not exist, creating it")
         COLLECTION = CLIENT.create_collection(
             name=COLLECTION_NAME,
