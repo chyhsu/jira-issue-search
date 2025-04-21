@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from jira import JIRA
 import urllib3
-from dotenv import load_dotenv
 from util.logger import get_logger
 
 # Get a logger for this module

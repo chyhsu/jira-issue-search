@@ -1,10 +1,9 @@
 import chromadb
 import os
 from util.txt_process import document, format_value
-from models.embedding import get_embedding_batch,get_embedding_bedrock_batch
+from models.embedding import get_embedding_bedrock_batch
 from util.logger import get_logger
 import multiprocessing
-import time
 logger = get_logger(__name__)
 
 CLIENT = None
@@ -105,7 +104,7 @@ def query(query_embedding, n_results=5):
 def create_entry(issues):
   
     # Create document text
-    doc_texts = [document(issue) for issue in issues]
+    doc_texts = document(issues)
     
     # Generate embeddings in batch 
     embeddings = get_embedding_bedrock_batch(doc_texts)

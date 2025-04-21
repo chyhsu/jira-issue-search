@@ -15,7 +15,7 @@ COPY util ./util/
 COPY db ./db/
 COPY models ./models/
 
-RUN mkdir -p /home/qnap/asset
+# RUN mkdir -p /home/qnap/asset
 RUN mkdir -p /chroma_data 
 
 # Add user

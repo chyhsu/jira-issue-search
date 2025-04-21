@@ -1,11 +1,11 @@
 import os
 from db.chroma import insert_or_replace_batch,get_all,insert_or_replace_one, get_one_by_key,query
 from util.txt_process import  format_value, document
-from api.jira_issue.jira_source import result_to_df, fetch_by_query, fetch_by_id
+from api.jira_issue.jira_source import fetch_by_query, fetch_by_id
 from models.embedding import get_embedding_bedrock
 from models.suggest import  get_suggestion_bedrock
 from util.logger import get_logger
-
+import concurrent.futures
 logger = get_logger(__name__)
 
 def sync_data():
@@ -21,7 +21,7 @@ def sync_data():
     fetch_size=int(os.getenv('FETCH_SIZE'))
 
     issues = fetch_by_query(jira_query,fetch_size)
-    result_to_df(issues)
+    # result_to_df(issues)
     
     # Issues that need to be updated
     to_update = []
@@ -29,38 +29,13 @@ def sync_data():
     
     # First pass: identify all issues that need updating
     logger.info("Identifying issues that need updating...")
-    for issue in issues:
-        need_update = False
-        # Get existing issue from database
-        existed_issue = get_one_by_key(issue['key'])
-        
-        if existed_issue:
-            metadata = existed_issue['metadata']
-            
-            # Direct comparisons - the format should be consistent now
-            if metadata.get('status') != issue.get('status'):
-                logger.info(f"Status changed for {issue['key']}: {metadata.get('status')} -> {issue.get('status')}")
-                need_update = True
-            
-            # Check if summary or description changed
-            if metadata.get('summary') != issue.get('summary'):
-                logger.info(f"Summary changed for {issue['key']}")
-                need_update = True
-                
-            # Special handling for description - normalize empty values        
-            if format_value(metadata.get('description')) != format_value(issue.get('description')):
-                logger.info(f"Description changed for {issue['key']}")
-                need_update = True
-
-            if need_update:
-                # Add to batch for update
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(32, fetch_size)) as executor:
+        futures = [executor.submit(check_if_needed_update, issue) for issue in issues]
+        for future in concurrent.futures.as_completed(futures):
+            issue = future.result()
+            if issue:
                 to_update.append(issue)
                 updated.append(issue.get('key'))
-        else:
-            # Issue doesn't exist, add to batch
-            logger.info(f"Issue {issue['key']} doesn't exist")
-            to_update.append(issue)
-            updated.append(issue.get('key'))
     
     # Second pass: process all updates at once
     if to_update:
@@ -152,3 +127,35 @@ def get_data(n_results):
             'suggestion':""
         })
     return ret[:n_results]
+
+def check_if_needed_update(issue):
+
+    need_update = False
+    # Get existing issue from database
+    existed_issue = get_one_by_key(issue['key'])
+    
+    if existed_issue:
+        metadata = existed_issue['metadata']
+        
+        # Direct comparisons - the format should be consistent now
+        if metadata.get('status') != issue.get('status'):
+            logger.info(f"Status changed for {issue['key']}: {metadata.get('status')} -> {issue.get('status')}")
+            need_update = True
+        
+        # Check if summary or description changed
+        if metadata.get('summary') != issue.get('summary'):
+            logger.info(f"Summary changed for {issue['key']}")
+            need_update = True
+            
+        # Special handling for description - normalize empty values        
+        if format_value(metadata.get('description')) != format_value(issue.get('description')):
+            logger.info(f"Description changed for {issue['key']}")
+            need_update = True
+
+        if need_update:
+            # Add to batch for update
+            return issue
+    else:
+        # Issue doesn't exist, add to batch
+        logger.info(f"Issue {issue['key']} doesn't exist")
+        return issue

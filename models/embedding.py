@@ -3,6 +3,9 @@ import os
 from tqdm import tqdm
 import json
 import boto3
+import concurrent.futures
+from util.logger import get_logger
+
 _MODEL = None
 _MODEL_PATH = None
 
@@ -10,6 +13,8 @@ BEDROCK_REGION = None
 BEDROCK_ACCESS_KEY_ID = None
 BEDROCK_SECRET_ACCESS_KEY = None
 BEDROCK_EMBEDDING_MODEL_ID = None
+
+logger = get_logger(__name__)
 
 def init():
     global _MODEL
@@ -33,10 +38,8 @@ def get_embedding(text):
         "model": _MODEL,
         "prompt": text
     }
-    
-    # Send POST request to Ollama API
     response = requests.post(_MODEL_PATH, json=payload)
-    response.raise_for_status()  # Raise an error for bad status codes
+    response.raise_for_status() 
     result = response.json()
     return result['embedding']
    
@@ -62,7 +65,6 @@ def get_embedding_bedrock(text):
         "inputText": text
     }
     
-    # Send POST request to Bedrock API
     response = bedrock_runtime.invoke_model(
         body=json.dumps(payload),
         modelId=BEDROCK_EMBEDDING_MODEL_ID,
@@ -73,18 +75,26 @@ def get_embedding_bedrock(text):
     return response_body['embeddingsByType']['float']
 
 def get_embedding_bedrock_batch(texts):
-    size=len(texts)
-    batch_size=10
-    num_batches=(size+batch_size-1)//batch_size
+    size = len(texts)
+    batch_size = 50
+    num_batches = (size + batch_size - 1) // batch_size
     embeddings = []
+    
     for i in tqdm(range(num_batches), desc="Generating embeddings", unit="batch"):
         batch_start = i * batch_size
         batch_end = min(batch_start + batch_size, size)
         batch = texts[batch_start:batch_end]
-        # Process each text in the batch individually
-        batch_embeddings = []
-        for text in batch:
-            embedding = get_embedding_bedrock(text)
-            batch_embeddings.append(embedding)
+
+        batch_embeddings = [None] * len(batch) 
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(50, len(batch))) as executor:
+            future_to_index = {executor.submit(get_embedding_bedrock, text): idx 
+                              for idx, text in enumerate(batch)}
+            
+            for future in concurrent.futures.as_completed(future_to_index):
+                idx = future_to_index[future]
+                batch_embeddings[idx] = future.result()
+        
         embeddings.extend(batch_embeddings)
+    
     return embeddings
