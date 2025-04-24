@@ -12,6 +12,7 @@ RUN pip install -r res/requirements.txt
 COPY run.py ./
 COPY api ./api/
 COPY util ./util/
+COPY scheme ./scheme/
 COPY db ./db/
 COPY models ./models/
 

@@ -3,14 +3,33 @@ from dotenv import load_dotenv
 import logging
 import os
 from util.logger import setup_logging, logger
+from util.token import create_token_service
+from flask import request, jsonify
 
 def create_app():
     app = Flask(__name__)
+    auth_url = os.environ.get('AUTH_URL')
+    app_id = os.environ.get('APP_ID')
+    token_service = create_token_service(auth_url, app_id)
     
-    # Configure centralized logging
     log_level = os.environ.get('LOG_LEVEL', 'INFO')
     setup_logging(getattr(logging, log_level.upper(), logging.INFO))
     
+    # Add access token check middleware
+    @app.before_request
+    def check_token():
+        if request.path == '/version':
+            return None
+        authorization = request.headers.get("Authorization")
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization[7:]
+        else:
+            return jsonify({'code': 401, 'message': 'Access token is missing'}), 401
+        token_info = token_service.get_token_info(token)
+        if not token_info:
+            return jsonify({'code': 401, 'message': 'Invalid access token'}), 401
+        if not token_info.to_dict().get('user').get('id'):
+            return jsonify({'code': 401, 'message': 'Invalid access token'}), 401
     # Initialize services
     init_services()
     
