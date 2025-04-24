@@ -54,7 +54,13 @@ Environment variables are managed using a `.env` file. Key variables include:
 *   `EMBEDDING_PROVIDER`: `bedrock` or `ollama`.
 *   `OLLAMA_MODEL`, `OLLAMA_BASE_URL`: Ollama configuration (if used).
 *   `AWS_REGION_NAME`, `AWS_BEDROCK_MODEL_ID`: AWS Bedrock configuration (if used).
+*   `AUTH_URL`: The OAuth authentication URL for token validation.
+*   `APP_ID`: The application ID used for API authentication.
 *   *Add any other relevant variables.*
+
+## Authentication
+
+This service uses OAuth access tokens for authentication. All API endpoints (except `/version`) require a valid user access token to be included in the request headers.
 
 ## Usage
 
@@ -90,4 +96,3 @@ Environment variables are managed using a `.env` file. Key variables include:
         *   **Response:** `{"code": 0, "message": "Suggest successfully", "results": [...]}` or `{"code": 0, "message": "No Result"}`
 
    
-
