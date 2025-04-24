@@ -1,6 +1,5 @@
 import requests
 import json
-import time
 from typing import Optional, Dict, Any
 from scheme.token import TokenInfo, UserInfo
 from util.logger import get_logger
@@ -28,7 +27,7 @@ class Token:
         self.auth_url = auth_url
         self.app_id = app_id
     
-    def get_token_info(self, access_token: str) -> TokenInfo:
+    def get_token_info(self, access_token: str) -> (TokenInfo | str):
         """
         Get token information from the OAuth server.
         
@@ -36,13 +35,13 @@ class Token:
             access_token: The access token to validate
             
         Returns:
-            TokenInfo object containing the token information
+            (TokenInfo | None, str): A tuple containing the token information and an error message
             
         Raises:
             TokenError: If access_token is empty or if there's an error in the request
         """
         if not access_token:
-            raise TokenError("access token is empty")
+            return  "access token is empty"
         
         uri = TOKEN_INFO_PATTERN.format(self.auth_url, access_token)
         
@@ -64,10 +63,7 @@ class Token:
             
             # Check for error in the response
             if result_dict.get("error"):
-                raise TokenError(
-                    f"error in token info response: {result_dict.get('error')}: "
-                    f"{result_dict.get('error_description')}"
-                )
+                return f"error in token info response"
       
             # Create TokenInfo object from response
             token_info = TokenInfo(
@@ -84,9 +80,9 @@ class Token:
             return token_info
             
         except requests.RequestException as e:
-            raise TokenError(f"failed to get token info: {str(e)}")
+            return f"failed to get token info"
         except json.JSONDecodeError as e:
-            raise TokenError(f"failed to parse token info response: {str(e)}")
+            return f"failed to parse token info response"
 
 
 def create_token_service(auth_url: str, app_id: str) -> Token:

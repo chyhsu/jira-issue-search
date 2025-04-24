@@ -26,8 +26,8 @@ def create_app():
         else:
             return jsonify({'code': 401, 'message': 'Access token is missing'}), 401
         token_info = token_service.get_token_info(token)
-        if not token_info:
-            return jsonify({'code': 401, 'message': 'Invalid access token'}), 401
+        if isinstance(token_info, str):
+            return jsonify({'code': 401, 'message': token_info}), 401
         if not token_info.to_dict().get('user').get('id'):
             return jsonify({'code': 401, 'message': 'Invalid access token'}), 401
     # Initialize services
