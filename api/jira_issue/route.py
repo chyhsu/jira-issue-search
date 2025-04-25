@@ -42,10 +42,10 @@ def suggest():
 @jira_issue_bp.route('/get_issues', methods=['GET'])
 def get():
     assignee = request.args.get('assignee')
-    created_at = request.args.get('created_at')
+    created_after = request.args.get('created_after')
     n_results = int(request.args.get('n_results', 10))
-    logger.info(f"Getting issues for assignee: {assignee}, created_at: {created_at}, n_results: {n_results}")
-    results=service.get_issues(assignee, created_at, n_results)
+    logger.info(f"Getting issues for assignee: {assignee}, created_after: {created_after}, n_results: {n_results}")
+    results=service.get_issues(assignee, created_after, n_results)
     if results == []:
         return jsonify({'code': 0, 'message': 'No Result'})
     return jsonify({'code': 0, 'message': 'Get successfully', 'results': results})
