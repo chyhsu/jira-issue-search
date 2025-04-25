@@ -3,6 +3,7 @@ import os
 from util.txt_process import document, format_value
 from models.embedding import get_embedding_bedrock_batch
 from util.logger import get_logger
+from util.txt_process import format_time_to_iso
 import multiprocessing
 logger = get_logger(__name__)
 
@@ -100,6 +101,11 @@ def query(query_embedding, n_results=5):
     )
     return results
 
+def get(**metadata_filters):
+    results = COLLECTION.get(
+        where=metadata_filters,
+    )
+    return results
 
 def create_entry(issues):
   
@@ -114,6 +120,7 @@ def create_entry(issues):
     
     # Create metadata with consistent format
     metadatas = []
+    
     for i, issue in enumerate(issues):
         metadata = {
             'key': issue.get('key'),

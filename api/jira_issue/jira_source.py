@@ -3,7 +3,7 @@ import pandas as pd
 from jira import JIRA
 import urllib3
 from util.logger import get_logger
-
+from util.txt_process import format_time_to_iso
 # Get a logger for this module
 logger = get_logger(__name__)
 
@@ -87,15 +87,16 @@ def create_issue_structure(issue):
     # Get assignee information if available
     assignee_name = 'Unassigned'
     if hasattr(issue.fields, 'assignee') and issue.fields.assignee:
-        assignee_name = issue.fields.assignee.displayName
-
+        assignee_name = issue.fields.assignee.name
+    
+    created_at_iso = format_time_to_iso(issue.fields.created)
     issue_url = f"https://qnap-jira.qnap.com.tw/browse/{issue.key}"
     return {
         'key': issue.key,
         'status': issue.fields.status.name,
         'summary': issue.fields.summary,
         'description': issue.fields.description,
-        'created': issue.fields.created,
+        'created': created_at_iso,
         'issuetype': issue.fields.issuetype.name,
         'assignee': assignee_name,
         'url': issue_url

@@ -2,6 +2,7 @@ import pandas as pd
 import re
 from util.logger import get_logger
 import concurrent.futures
+from datetime import datetime, timezone, timedelta
 # Get a logger for this module
 logger = get_logger(__name__)
 
@@ -54,3 +55,18 @@ def format_value(value, default=''):
     if isinstance(value, (int, float, bool)):
         return value
     return clean_text(str(value))
+
+def format_time_to_iso(time_str):
+    if not isinstance(time_str, str):
+        return time_str
+    else:
+        if time_str[-5] == " ":
+            time_str = time_str[:-5] + "+" + time_str[-4:]
+        dt = datetime.fromisoformat(time_str)
+        return int(dt.astimezone(timezone.utc).timestamp())
+
+def format_time_to_txt(time):
+    if not isinstance(time, (int, float)):
+        return str(time)  # Return the string as is if it's not a numeric timestamp
+    return datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
+    

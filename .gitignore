@@ -6,3 +6,4 @@ chroma.log
 .DS_Store
 .env
 asset/*
+chroma_data/*

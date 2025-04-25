@@ -39,10 +39,16 @@ def suggest():
         return jsonify({'code': 0, 'message': 'No Result'})
     return jsonify({'code': 0, 'message': 'Suggest successfully', 'results': suggestion})
 
-@jira_issue_bp.route('/get', methods=['GET'])
+@jira_issue_bp.route('/get_issues', methods=['GET'])
 def get():
-    n_results = int(request.args.get('n_results', 5))
-    return jsonify({'code': 0, 'message': 'Get successfully', 'results': service.get_data(n_results)})
+    assignee = request.args.get('assignee')
+    created_at = request.args.get('created_at')
+    n_results = int(request.args.get('n_results', 10))
+    logger.info(f"Getting issues for assignee: {assignee}, created_at: {created_at}, n_results: {n_results}")
+    results=service.get_issues(assignee, created_at, n_results)
+    if results == []:
+        return jsonify({'code': 0, 'message': 'No Result'})
+    return jsonify({'code': 0, 'message': 'Get successfully', 'results': results})
 
 @jira_issue_bp.route('/version', methods=['GET'])
 def version():

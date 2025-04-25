@@ -1,11 +1,12 @@
 import os
-from db.chroma import insert_or_replace_batch,get_all,insert_or_replace_one, get_one_by_key,query
+from db.chroma import insert_or_replace_batch,insert_or_replace_one, get_one_by_key,query,get
 from util.txt_process import  format_value, document
 from api.jira_issue.jira_source import fetch_by_query, fetch_by_id
 from models.embedding import get_embedding_bedrock
 from models.suggest import  get_suggestion_bedrock
 from util.logger import get_logger
 import concurrent.futures
+from util.txt_process import format_time_to_txt, format_time_to_iso
 logger = get_logger(__name__)
 
 def sync_data():
@@ -96,8 +97,10 @@ def query_data(key,q,n_results):
             'key': result_key,
             'summary': metadata.get('summary', 'No summary available'),
             'url': metadata.get('url', 'No URL available'),
-            'distance': float(results['distances'][0][i]) if 'distances' in results else 0.0,
-            'created': metadata.get('created', 'No created date available')
+            'assignee': metadata.get('assignee','None'),
+            'issuetype': metadata.get('issuetype','None'),
+            'description': metadata.get('description','None'),
+            'created': format_time_to_txt(metadata.get('created', 'No created date available'))
         })
       
         # If we have enough results after filtering, break
@@ -111,22 +114,31 @@ def suggest_data(key):
     if not existed_issue:
         return []
     ret['summary']=existed_issue['metadata']['summary']
-    ret['description']=existed_issue['metadata']['description']
     ret['suggestion']=get_suggestion_bedrock(existed_issue['document'])
     return ret
 
 
-def get_data(n_results):
+def get_issues(assignee, created_after=None, n_results=10):
     ret=[]
-    results = get_all()
+    created_after_iso = format_time_to_iso(created_after)
+    metadata_filters = {
+        "$and": [
+            {"assignee": {"$eq": assignee}},
+            {"created": {"$gte": created_after_iso}}
+        ]
+    }
+    results = get(**metadata_filters)
     for doc in results['metadatas']:
-        text=f"This is summary: '{doc['summary']}'; This is description: '{doc['description']}'"
         ret.append({
-            'text': text,
             'key': doc['key'],
-            'suggestion':""
+            'summary': doc.get('summary', 'No summary available'),
+            'url': doc.get('url', 'No URL available'),
+            'assignee': doc.get('assignee','None'),
+            'issuetype': doc.get('issuetype','None'),
+            'description': doc.get('description','None'),
+            'created': format_time_to_txt(doc.get('created', 'No created date available'))
         })
-    return ret[:n_results]
+    return ret
 
 def check_if_needed_update(issue):
 
@@ -150,6 +162,19 @@ def check_if_needed_update(issue):
         # Special handling for description - normalize empty values        
         if format_value(metadata.get('description')) != format_value(issue.get('description')):
             logger.info(f"Description changed for {issue['key']}")
+            need_update = True
+
+        # Check if created date changed
+        if isinstance(metadata.get('created'),str):
+            logger.info(f"Created date changed for {issue['key']}")
+            need_update = True
+        elif metadata.get('created') != format_time_to_iso(issue.get('created')):
+            logger.info(f"Created date changed for {issue['key']}")
+            need_update = True
+        
+        # Check if assignee changed
+        if metadata.get('assignee') != issue.get('assignee'):
+            logger.info(f"Assignee changed for {issue['key']}: {metadata.get('assignee')} -> {issue.get('assignee')}")
             need_update = True
 
         if need_update:

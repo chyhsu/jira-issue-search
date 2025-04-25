@@ -2,22 +2,20 @@
 
 ## Description
 
-This service provides an API to search for relevant Jira issues based on semantic similarity using vector embeddings. It fetches Jira issues, generates embeddings (using either AWS Bedrock or a local Ollama model), stores them in a ChromaDB vector database, and exposes an API endpoint for searching.
+This service provides an API to search for relevant Jira issues based on semantic similarity using vector embeddings. It fetches Jira issues, generates embeddings, stores them in a ChromaDB vector database, and exposes an API endpoint for searching.
 
 ## Features
 
 *   Fetches issues from Jira.
-*   Generates text embeddings using configurable providers (AWS Bedrock, Ollama).
+*   Generates text embeddings using configurable providers.
 *   Stores embeddings in ChromaDB for persistent vector search.
 *   Provides a Flask-based API for searching issues.
-*   Centralized logging.
-*   Dockerized for easier deployment.
 
 ## Tech Stack
 
 *   **Backend:** Python, Flask
 *   **Vector Database:** ChromaDB
-*   **Embedding Models:** AWS Bedrock / Ollama
+*   **Embedding Models:** AWS Bedrock
 *   **Containerization:** Docker
 
 ## Setup and Installation
@@ -47,16 +45,14 @@ This service provides an API to search for relevant Jira issues based on semanti
 
 Environment variables are managed using a `.env` file. Key variables include:
 
-*   `FLASK_ENV`: Application environment (e.g., `development`, `production`)
 *   `JIRA_URL`, `JIRA_USERNAME`, `JIRA_API_TOKEN`: Jira connection details.
-*   `CHROMA_DIR`: Path to the ChromaDB persistent storage directory (default: `asset/chroma_data`).
+*   `CHROMA_DIR`: Path to the ChromaDB persistent storage directory.
 *   `COLLECTION_NAME`: ChromaDB collection name (default: `jira_issues`).
-*   `EMBEDDING_PROVIDER`: `bedrock` or `ollama`.
-*   `OLLAMA_MODEL`, `OLLAMA_BASE_URL`: Ollama configuration (if used).
+*   `EMBEDDING_PROVIDER`: `bedrock`.
 *   `AWS_REGION_NAME`, `AWS_BEDROCK_MODEL_ID`: AWS Bedrock configuration (if used).
 *   `AUTH_URL`: The OAuth authentication URL for token validation.
 *   `APP_ID`: The application ID used for API authentication.
-*   *Add any other relevant variables.*
+
 
 ## Authentication
 
@@ -64,20 +60,9 @@ This service uses OAuth access tokens for authentication. All API endpoints (exc
 
 ## Usage
 
-1.  **Generate Embeddings (if needed):**
-    *(Add command or script name here if you have one, e.g., `python scripts/generate_embeddings.py`)*
 
-2.  **Run the API server:**
-    ```bash
-    flask run
-    ```
-    Or using Docker:
-    ```bash
-    docker build -t search-issue-service -f res/docker/api.Dockerfile .
-    docker run -p 5000:5000 --env-file .env search-issue-service
-    ```
 
-3.  **API Endpoints:**
+1.  **API Endpoints:**
 
     *   `POST/sync`: Trigger synchronization with Jira.
         *   **Request Body:** None
@@ -94,5 +79,12 @@ This service uses OAuth access tokens for authentication. All API endpoints (exc
         *   **Query Parameters:**
             *   `key` (string, required): The Jira issue key to get suggestions for.
         *   **Response:** `{"code": 0, "message": "Suggest successfully", "results": [...]}` or `{"code": 0, "message": "No Result"}`
+    *   `GET/get_issues`: Retrieve issues assigned to a specific user that were created after a specified date.
+        *   **Query Parameters:**
+            *   `assignee` (string, required): The assigned user to filter by. For example: `abcde@qnap.com`
+            *   `created_at` (string, required): Start date in `YYYY-MM-DDTHH:MM:SS.SSS+0800` format. For example: `2025-04-01T15:19:03.000+0800`
+            *   `n_results` (int, optional, default: 10): The maximum number of results to return.
+        *   **Response:** `{"code": 0, "message": "Get successfully", "results": [...]}` or `{"code": 0, "message": "No Result"}`
+        
 
    
