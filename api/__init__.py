@@ -23,12 +23,16 @@ def create_app():
         authorization = request.headers.get("Authorization")
         if authorization and authorization.startswith("Bearer "):
             token = authorization[7:]
+            logger.info(f'Access token is present:{token}')
         else:
+            logger.error('Access token is missing')
             return jsonify({'code': 401, 'message': 'Access token is missing'}), 401
         token_info = token_service.get_token_info(token)
         if isinstance(token_info, str):
+            logger.error(token_info)
             return jsonify({'code': 401, 'message': token_info}), 401
         if not token_info.to_dict().get('user').get('id'):
+            logger.error('Invalid access token')
             return jsonify({'code': 401, 'message': 'Invalid access token'}), 401
     # Initialize services
     init_services()

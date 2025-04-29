@@ -5,4 +5,4 @@ if __name__ == '__main__':
    
     # Create and run the application
     app = create_app()
-    app.run(host='0.0.0.0', port=8080)
+    app.run(threaded=True,host='0.0.0.0', port=8080)
