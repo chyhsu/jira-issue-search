@@ -80,11 +80,9 @@ class Token:
             return token_info
             
         except requests.RequestException as e:
-            logger.error(f"Failed to get token info: {e}")
-            return f"failed to get token info"
+            return f"failed to get token info: {e}"
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse token info response: {e}")
-            return f"failed to parse token info response"
+            return f"failed to parse token info response:{e}"
 
 
 def create_token_service(auth_url: str, app_id: str) -> Token:
