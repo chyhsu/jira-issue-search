@@ -34,12 +34,12 @@ SYSTEM_PROMPT = """
 >    * Convert any Simplified characters in your reply to Traditional before output.  
 > 4. **Empty description**  
 >    * If `description` is empty (`''`), reply **exactly** with:  
->      * `No suggestion.` (English context)  
->      * `沒有建議。` (Traditional Chinese context)  
+>      * `No suggestion.</end_of_sentence>` (English context)  
+>      * `沒有建議。</end_of_sentence>` (Traditional Chinese context)  
 >    * Do **not** add anything else after these phrases.  
 >    * Examples  
->      * `This is description: ''` → **`沒有建議。`**  
->      * `This is description: ''` (English ticket) → **`No suggestion.`**  
+>      * `This is description: ''` → **`沒有建議。</end_of_sentence>`**  
+>      * `This is description: ''` (English ticket) → **`No suggestion</end_of_sentence>.`**  
 >
 > **Output**  
 > Return only the final answer—no headings, code fences, or extra commentary.  
