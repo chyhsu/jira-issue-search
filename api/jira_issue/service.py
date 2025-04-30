@@ -100,6 +100,7 @@ def query_data(key,q,n_results):
             'assignee': metadata.get('assignee','None'),
             'issuetype': metadata.get('issuetype','None'),
             'description': metadata.get('description','None'),
+            'status': metadata.get('status'),
             'created': format_time_to_txt(metadata.get('created', 'No created date available'))
         })
       
@@ -136,6 +137,7 @@ def get_issues(assignee, created_after=None, n_results=10):
             'assignee': doc.get('assignee','None'),
             'issuetype': doc.get('issuetype','None'),
             'description': doc.get('description','None'),
+            'status': doc.get('status'),
             'created': format_time_to_txt(doc.get('created', 'No created date available'))
         })
     return ret
