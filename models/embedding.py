@@ -61,6 +61,11 @@ def get_embedding_bedrock(text):
         aws_secret_access_key=BEDROCK_SECRET_ACCESS_KEY,
     )
 
+    # Truncate text to avoid exceeding model token limits (approx. 30k chars for 8192 tokens)
+    MAX_CHARS = 10000
+    if len(text) > MAX_CHARS:
+        text = text[:MAX_CHARS]
+
     payload = {
         "inputText": text
     }
