@@ -33,7 +33,7 @@ def document(rows):
         return [process_row(row)]
 
     result = [None] * rows_size
-    with concurrent.futures.ThreadPoolExecutor(max_workers=min(32, rows_size)) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(100, rows_size)) as executor:
         future_to_index = {
             executor.submit(process_row, rows[i]): i 
             for i in range(rows_size)

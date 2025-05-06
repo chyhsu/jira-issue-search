@@ -30,7 +30,7 @@ def sync_data():
     
     # First pass: identify all issues that need updating
     logger.info("Identifying issues that need updating...")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=min(32, fetch_size)) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(100, fetch_size)) as executor:
         futures = [executor.submit(check_if_needed_update, issue) for issue in issues]
         for future in concurrent.futures.as_completed(futures):
             issue = future.result()

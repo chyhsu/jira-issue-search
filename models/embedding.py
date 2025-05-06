@@ -92,7 +92,7 @@ def get_embedding_bedrock_batch(texts):
 
         batch_embeddings = [None] * len(batch) 
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=min(50, len(batch))) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(batch)) as executor:
             future_to_index = {executor.submit(get_embedding_bedrock, text): idx 
                               for idx, text in enumerate(batch)}
             
