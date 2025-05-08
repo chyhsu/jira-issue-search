@@ -15,7 +15,7 @@ def clean_text(text):
     text = re.sub(r'<.*?>', '', text)    # Remove HTML tags
     text = re.sub(r'http\S+', '', text)  # Remove URLs
     text = re.sub(r'\s+', ' ', text)     # Normalize whitespace
-    text = re.sub(r'\\n','\n',text)
+    
     return text.strip()
 
 def document(rows):

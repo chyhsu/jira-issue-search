@@ -2,6 +2,7 @@ import requests
 import os
 import json
 import boto3
+import re
 from util.txt_process import clean_text
 _MODEL = None
 _MODEL_PATH = None
@@ -51,7 +52,7 @@ You are the **Jira Issue Resolution Assistant**—an expert at troubleshooting J
 3.  **Handling Empty or Insufficient Input**
     *   If `description_text` is empty (`''`), reply **exactly** as follows, ensuring all line breaks are single `\\n` characters:
     *   **Your entire response must strictly follow this exact format. Use a single newline character (`\\n`) where a line break is indicated. Specifically, there must be ONE `\\n` after "建議:", ONE `\\n` after the Chinese suggestion, ONE `\\n` after "Suggestion:", and ONE `\\n` within the Chinese and English suggestions if they span multiple lines.**
-    
+
         ```text
         建議:
         沒有建議。
@@ -122,8 +123,8 @@ def get_suggestion_bedrock(text):
     
     body = json.dumps({
         "prompt": formatted_prompt,
-        "max_tokens": 1000,
-        "temperature": 0.7,
+        "max_tokens": 800,
+        "temperature": 0.5,
         "top_p": 0.9,
     })
 
@@ -135,5 +136,7 @@ def get_suggestion_bedrock(text):
     # Extract choices.
     choices = model_response["choices"]
     response_text = clean_text(choices[0]['text'])
-    
+    response_text = re.sub(r'\\n','\n',response_text)
+    response_text = re.sub(r'建議:','建議:\n',response_text)
+    response_text = re.sub(r'Suggestion:','\n\nSuggestion:\n',response_text)
     return response_text
