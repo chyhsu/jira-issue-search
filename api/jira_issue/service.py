@@ -180,7 +180,8 @@ def check_if_needed_update(issue):
         if metadata.get('assignee') != issue.get('assignee'):
             logger.info(f"Assignee changed for {issue['key']}: {metadata.get('assignee')} -> {issue.get('assignee')}")
             need_update = True
-
+        
+        # Check if comments added or deleted
         if metadata.get('comment_num') != issue.get('comment_num'):
             logger.info(f"The number of comments changed for {issue['key']}")
             need_update = True
