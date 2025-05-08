@@ -7,3 +7,4 @@ chroma.log
 .env
 asset/*
 chroma_data/*
+chroma.sqlite3

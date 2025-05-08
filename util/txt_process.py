@@ -26,7 +26,8 @@ def document(rows):
         key = format_value(row.get('key', ''))
         summary = format_value(row.get('summary', ''))
         description = format_value(row.get('description', ''))
-        return f"This is Issue ID: '{key}'; This is summary: '{summary}'; This is description: '{description}'"
+        comment= format_value(row.get('comment',''))
+        return f"This is Issue ID: '{key}'; This is summary: '{summary}'; This is description: '{description}'; This is comments: '{comment}'"
 
     if rows_size == 1:
         row = rows[0]

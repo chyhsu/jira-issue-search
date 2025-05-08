@@ -129,6 +129,8 @@ def create_entry(issues):
             'summary': format_value(issue.get('summary')),
             'description': format_value(issue.get('description')),
             'issuetype': issue.get('issuetype'),
+            'comment': issue.get('comment'),
+            'comment_num':issue.get('comment_num'),
             'assignee': issue.get('assignee'),
             'url': issue_urls[i]
         }

@@ -74,7 +74,8 @@ def query_data(key,q,n_results):
                 logger.error(f"Failed to fetch issue {key}: {e}")
                 return []
             insert_or_replace_one(issue)
-            query_text = document(issue)
+            # document([issue]) returns a list with one string, get that string for Bedrock
+            query_text = document([issue])[0] 
             query_embedding = get_embedding_bedrock(query_text)
         else:
             query_embedding = existed_issue['embedding']
@@ -100,6 +101,7 @@ def query_data(key,q,n_results):
             'assignee': metadata.get('assignee','None'),
             'issuetype': metadata.get('issuetype','None'),
             'description': metadata.get('description','None'),
+            'comment':metadata.get('comment'),
             'status': metadata.get('status'),
             'created': format_time_to_txt(metadata.get('created', 'No created date available'))
         })
@@ -177,6 +179,10 @@ def check_if_needed_update(issue):
         # Check if assignee changed
         if metadata.get('assignee') != issue.get('assignee'):
             logger.info(f"Assignee changed for {issue['key']}: {metadata.get('assignee')} -> {issue.get('assignee')}")
+            need_update = True
+
+        if metadata.get('comment_num') != issue.get('comment_num'):
+            logger.info(f"The number of comments changed for {issue['key']}")
             need_update = True
 
         if need_update:
