@@ -1,4 +1,4 @@
-FROM rockylinux:9-minimal
+FROM quay.io/rockylinux/rockylinux:9-minimal
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
