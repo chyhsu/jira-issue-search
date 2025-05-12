@@ -10,6 +10,17 @@ ENV PYTHONUNBUFFERED=1 \
 RUN microdnf install -y gcc make wget tar gzip python3.12 python3.12-pip --nodocs --setopt=install_weak_deps=0
 RUN microdnf update -y && microdnf clean all
 
+# Download and install zlib 1.3.1
+RUN wget https://zlib.net/zlib-1.3.1.tar.gz && \
+    tar -xzf zlib-1.3.1.tar.gz && \
+    cd zlib-1.3.1 && \
+    ./configure --prefix=/usr/local && \
+    make && \
+    make install && \
+    cd .. && \
+    rm -rf zlib-1.3.1* && \
+    ldconfig
+
 # Download and install SQLite >= 3.35.0 (e.g., 3.39.0)
 RUN wget https://www.sqlite.org/2022/sqlite-autoconf-3390000.tar.gz && \
     tar -xzf sqlite-autoconf-3390000.tar.gz && \
