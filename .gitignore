@@ -8,3 +8,4 @@ chroma.log
 asset/*
 chroma_data/*
 chroma.sqlite3
+.venv
