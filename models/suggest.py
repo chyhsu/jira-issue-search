@@ -110,33 +110,48 @@ def get_suggestion(text):
 
 def get_suggestion_bedrock(text):
     client = boto3.client(
-    service_name="bedrock-runtime",
-    region_name=BEDROCK_REGION,
-    aws_access_key_id=BEDROCK_ACCESS_KEY_ID,
-    aws_secret_access_key=BEDROCK_SECRET_ACCESS_KEY,)
-    formatted_prompt = f"""
-    <begin_of_sentence><System>{SYSTEM_PROMPT}</end_of_sentence>\n
-    <begin_of_sentence><User>{text}</end_of_sentence>\n
-    <begin_of_sentence><Assistant>{'According to the description, my suggestion is '}
-    
-    """
+        service_name="bedrock-runtime",
+        region_name=BEDROCK_REGION,
+        aws_access_key_id=BEDROCK_ACCESS_KEY_ID,
+        aws_secret_access_key=BEDROCK_SECRET_ACCESS_KEY,
+    )
     
     body = json.dumps({
-        "prompt": formatted_prompt,
-        "max_tokens": 800,
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1000,
+        "system": SYSTEM_PROMPT,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": text}
+                ]
+            }
+        ],
         "temperature": 0.5,
         "top_p": 0.9,
     })
 
-    response = client.invoke_model(modelId=BEDROCK_SUGGEST_MODEL_ID, body=body)
+    response = client.invoke_model(
+        modelId=BEDROCK_SUGGEST_MODEL_ID,
+        body=body,
+        contentType="application/json",
+        accept="application/json"
+    )
 
-    # Read the response body.
-    model_response = json.loads(response["body"].read())
+    # Read and parse the response
+    response_body = json.loads(response['body'].read().decode('utf-8'))
     
-    # Extract choices.
-    choices = model_response["choices"]
-    response_text = clean_text(choices[0]['text'])
-    response_text = re.sub(r'\\n','\n',response_text)
-    response_text = re.sub(r'建議:','建議:\n',response_text)
-    response_text = re.sub(r'Suggestion:','\n\nSuggestion:\n',response_text)
+    # Extract the response text
+    response_text = ''
+    for content in response_body.get('content', []):
+        if content['type'] == 'text':
+            response_text += content['text']
+    
+    # Clean up the response text
+    response_text = clean_text(response_text)
+    response_text = re.sub(r'\\n','\n', response_text)
+    response_text = re.sub(r'建議:','建議:\n', response_text)
+    response_text = re.sub(r'Suggestion:','\n\nSuggestion:\n', response_text)
+    
     return response_text
