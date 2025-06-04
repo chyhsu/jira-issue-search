@@ -32,6 +32,7 @@ RUN wget https://www.sqlite.org/2022/sqlite-autoconf-3390000.tar.gz && \
     rm -rf sqlite-autoconf-3390000* && \
     ldconfig
 
+
 # Set LD_LIBRARY_PATH to include custom SQLite
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
