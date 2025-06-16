@@ -61,8 +61,8 @@ def format_time_to_iso(time_str):
     if not isinstance(time_str, str):
         return time_str
     else:
+        logger.info(f"Time string before conversion: {time_str}")
         if time_str[-5] == " ":
-            logger.info(f"Time string before conversion: {time_str}")
             time_str = time_str[:-5] + "+" + time_str[-4:]
             logger.info(f"Time string after conversion: {time_str}")
         dt = datetime.fromisoformat(time_str)
