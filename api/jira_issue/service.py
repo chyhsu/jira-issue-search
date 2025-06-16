@@ -148,6 +148,7 @@ def get_issues(assignee, created_after=None, n_results=10):
             'summary': doc.get('summary', 'No summary available'),
             'url': doc.get('url', 'No URL available'),
             'assignee': doc.get('assignee','None'),
+            'comment':doc.get('comment'),
             'issuetype': doc.get('issuetype','None'),
             'description': doc.get('description','None'),
             'status': doc.get('status'),
