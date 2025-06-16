@@ -7,7 +7,17 @@ from models.suggest import  get_suggestion_bedrock
 from util.logger import get_logger
 import concurrent.futures
 from util.txt_process import format_time_to_txt, format_time_to_iso
+import time 
+from threading import Thread 
+from datetime import datetime, timedelta 
+
 logger = get_logger(__name__)
+
+
+_sync_thread = None
+_keep_sync_running = True 
+SYNC_INTERVAL_SECONDS = 3600 
+
 
 def sync_data():
     """
@@ -21,6 +31,7 @@ def sync_data():
     jira_query=os.getenv('JIRA_QUERY')
     fetch_size=int(os.getenv('FETCH_SIZE'))
 
+    logger.info("Starting Jira data sync...")
     issues = fetch_by_query(jira_query,fetch_size)
     # result_to_df(issues)
     
@@ -143,6 +154,51 @@ def get_issues(assignee, created_after=None, n_results=10):
             'created': format_time_to_txt(doc.get('created', 'No created date available'))
         })
     return ret
+
+
+def _sync_scheduler_loop():
+    """Internal loop for the sync scheduler thread."""
+    global _keep_sync_running
+    logger.info("Sync scheduler thread started.")
+    while _keep_sync_running:
+        try:
+            logger.info(f"Scheduler: Calling sync_data at {datetime.now()}")
+            sync_data()
+            logger.info(f"Scheduler: sync_data finished. Next sync in {SYNC_INTERVAL_SECONDS} seconds.")
+        except Exception as e:
+            logger.error(f"Error during scheduled sync_data: {e}", exc_info=True)
+        
+        # Wait for the interval, but check _keep_sync_running periodically
+        # to allow for faster shutdown if needed.
+        for _ in range(SYNC_INTERVAL_SECONDS):
+            if not _keep_sync_running:
+                break
+            time.sleep(1)
+            
+    logger.info("Sync scheduler thread stopped.")
+
+def start_background_sync():
+    """Starts the background sync scheduler thread if not already running."""
+    global _sync_thread
+    if _sync_thread is None or not _sync_thread.is_alive():
+        _sync_thread = Thread(target=_sync_scheduler_loop, daemon=True)
+        _sync_thread.start()
+        logger.info("Background sync thread initiated.")
+    else:
+        logger.info("Background sync thread is already running.")
+
+def stop_background_sync():
+    """Signals the background sync scheduler thread to stop."""
+    global _keep_sync_running
+    _keep_sync_running = False
+    if _sync_thread and _sync_thread.is_alive():
+        logger.info("Attempting to stop background sync thread...")
+        _sync_thread.join(timeout=10) # Wait for the thread to finish
+        if _sync_thread.is_alive():
+            logger.warning("Background sync thread did not stop in time.")
+    else:
+        logger.info("Background sync thread was not running or already stopped.")
+
 
 def check_if_needed_update(issue):
 
