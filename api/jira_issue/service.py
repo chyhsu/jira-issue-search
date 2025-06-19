@@ -138,8 +138,7 @@ def get_issues(assignee, created_after=None, n_results=200):
     metadata_filters = {
         "$and": [
             {"assignee": {"$eq": assignee}},
-            {"created": {"$gte": created_after_iso}},
-            {"$limit": n_results}
+            {"created": {"$gte": created_after_iso}}
         ]
     }
     results = get(**metadata_filters)
