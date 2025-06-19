@@ -132,13 +132,14 @@ def suggest_data(key):
     return ret
 
 
-def get_issues(assignee, created_after=None, n_results=10):
+def get_issues(assignee, created_after=None, n_results=200):
     ret=[]
     created_after_iso = format_time_to_iso(created_after)
     metadata_filters = {
         "$and": [
             {"assignee": {"$eq": assignee}},
-            {"created": {"$gte": created_after_iso}}
+            {"created": {"$gte": created_after_iso}},
+            {"$limit": n_results}
         ]
     }
     results = get(**metadata_filters)

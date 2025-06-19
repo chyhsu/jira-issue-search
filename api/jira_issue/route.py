@@ -43,7 +43,7 @@ def suggest():
 def get():
     assignee = request.args.get('assignee')
     created_after = request.args.get('created_after')
-    n_results = int(request.args.get('n_results', 100))
+    n_results = int(request.args.get('n_results', 200))
     logger.info(f"Getting issues for assignee: {assignee}, created_after: {created_after}, n_results: {n_results}")
     results=service.get_issues(assignee, created_after, n_results)
     if results == []:
